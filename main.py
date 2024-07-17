@@ -18,9 +18,24 @@ def main():
 
     while True:
         raw_data, address = conn.recvfrom(65535)
-        dest_mac, source_mac, eth_type, data = unpack_ethernet_frame(raw_data)
+        dest_mac, source_mac, eth_protocol, data = unpack_ethernet_frame(raw_data)
         print('\nEthernet frame:')
-        print('Source: {}, Destination: {}, Protocol: {}'.format(source_mac, dest_mac, eth_type))
+        print('Source: {}, Destination: {}, Protocol: {}'.format(source_mac, dest_mac, eth_protocol))
+
+        # IPv4 is protocol 8
+        if eth_protocol == 8:
+            (version, header_length, ttl, proto, src, target, data) = unpack_ipv4_packet(data)
+            print('IPv4 Packet:')
+            print('\nVersion: {}, Header Length: {}, TTL: {}'.format(version, header_length, ttl))
+            print('\nProtocol: {}, Source: {}, Target: {}'.format(proto, src, target))
+
+            # ICMP
+            if proto == 1:
+                icmp_type, code, checksum, data = icmp_packet(data)
+
+        else:
+            print('Data: ')
+            print(format_multi_line('\n', data))
 
 
 def get_mac_address(address):
@@ -73,7 +88,7 @@ def icmp_packet(data):
     :return:
     """
     icmp_type, code, checksum = struct.unpack('! B B H', data[:4])
-    return icmp_type, code. checksum, data[4:]
+    return icmp_type, code, checksum, data[4:]
 
 
 def tcp_segment(data):
@@ -101,7 +116,6 @@ def format_multi_line(prefix, string, size=80):
         if size % 2:
             size -= 1
     return '\n'.join([prefix + line for line in textwrap.wrap(string, size)])
-
 
 
 main()
