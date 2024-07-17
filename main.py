@@ -1,16 +1,24 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+import struct  # Handles binary data in files, will need to interpret all data in frame
+import socket  # access to BSD socket interface (an API for internet sockets)
+import textwrap
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+def get_mac_address(address):
+    """
+    change MAC address into the format AA:BB:CC:DD:EE:FF
+    :param address: the MAC address to reformat
+    :return: MAC address in the correct format
+    """
+    bytes_str = map('{:02x}'.format, address)
+    mac_addr = ':'.join(bytes_str).upper()
+    return mac_addr
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+def unpack_ethernet_frame(data):
+    """
+    Unpack the frame & interpret binary data of ethernet header using struct
+    :param data: data from packet which is to be interpreted
+    :return: properly formatted source & dest mac address, readable byte format of type, payload data
+    """
+    dest_mac, source_mac, type = struct.unpack('! 6s 6s H', data[:14])
+    return get_mac_address(dest_mac), get_mac_address(source_mac), socket.htons(type), data[14:]
