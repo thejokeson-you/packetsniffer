@@ -9,12 +9,12 @@ def main():
     MAKE SURE IDE IS RUNNING WITH ADMIN PRIVILEGES IF TESTING.
     """
 
-    host = socket.gethostbyname(socket.gethostname())   # Raw socket
+    host = socket.gethostbyname(socket.gethostname())  # Raw socket
     # Create socket to allow connections with other computers
     conn = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_IP)
     conn.bind((host, 0))  # Bind raw socket to public interface
-    conn.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1) # Include IP headers
-    conn.ioctl(socket.SIO_RCVALL, socket.RCVALL_ON) # Receive all packets
+    conn.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1)  # Include IP headers
+    conn.ioctl(socket.SIO_RCVALL, socket.RCVALL_ON)  # Receive all packets
 
     while True:
         raw_data, address = conn.recvfrom(65535)
@@ -32,6 +32,29 @@ def main():
             # ICMP
             if proto == 1:
                 icmp_type, code, checksum, data = icmp_packet(data)
+
+            # TCP
+            elif proto == 6:
+                (src_port, dest_port, sequence, acknowledgement, flag_urg, flag_ack, flag_psh, flag_rst, flag_syn,
+                 flag_fin, data) = tcp_segment(data)
+                print('TCP Segment: ')
+                print('\nSource port: {}, Destination port: {}'.format(src_port, dest_port))
+                print('\nSequence: {}, Acknowledgement: {}'.format(sequence, acknowledgement))
+                print('\nFlags: ')
+                print('\n\nURG: {}, ACK: {}, PSH: {}, RST: {}, SYN: {}, FIN: {}'.format(flag_urg, flag_ack, flag_psh,
+                                                                                        flag_rst, flag_syn, flag_fin))
+                print('\nData: ')
+                print(format_multi_line('\n\n\n', data))
+
+            # UDP
+            elif proto == 17:
+                src_port, dest_port, size, data = udp_segment(data)
+                print('UDP Segment: ')
+                print('\nSource port: {}, Destination port: {}, Length: {}'.format(src_port, dest_port, size))
+
+            else:
+                print('Data: ')
+                print(format_multi_line('\n', data))
 
         else:
             print('Data: ')
@@ -66,9 +89,9 @@ def unpack_ipv4_packet(data):
     :return: version, header length, TTL, protocol, formatted src & dest IPs, & rest of data (payload)
     """
     version_header_length = data[0]
-    version = version_header_length >> 4   # bitwise shift to push out header length so only version is left in data[0]
+    version = version_header_length >> 4  # bitwise shift to push out header length so only version is left in data[0]
     header_length = (version_header_length & 15) * 4
-    ttl, protocol, src ,target = struct.unpack('! 8x B B 2x 4s 4s', data [:20])
+    ttl, protocol, src, target = struct.unpack('! 8x B B 2x 4s 4s', data[:20])
     return version, header_length, ttl, protocol, formatted_ipv4(src), formatted_ipv4(target), data[header_length:]
 
 
@@ -105,7 +128,14 @@ def tcp_segment(data):
     flag_rst = (offset_reserved_flags & 4) >> 2
     flag_syn = (offset_reserved_flags & 2) >> 1
     flag_fin = offset_reserved_flags & 1
-    return src_port, dest_port, sequence, acknowledgement, flag_urg, flag_ack, flag_psh, flag_rst, flag_syn, flag_fin, data[offset:]
+    return src_port, dest_port, sequence, acknowledgement, flag_urg, flag_ack, flag_psh, flag_rst, flag_syn, flag_fin, data[
+                                                                                                                       offset:]
+
+
+# Unpacks UDP segment
+def udp_segment(data):
+    src_port, dest_port, size = struct.unpack('! H H 2x H', data[:8])
+    return src_port, dest_port, size, data[8:]
 
 
 # Correctly formats multi-line data
