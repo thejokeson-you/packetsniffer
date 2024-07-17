@@ -3,13 +3,28 @@ import socket  # access to BSD socket interface (an API for internet sockets)
 import textwrap
 
 
+def main():
+    """
+    Infinite loop main method which listens for packets from which data is extracted & outputted
+    :return:
+    """
+
+    # Create socket to allow connections with other computers
+    conn = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
+    while True:
+        raw_data, address = conn.recvfrom(65535)
+        dest_mac, source_mac, eth_type, data = unpack_ethernet_frame(raw_data)
+        print('\nEthernet frame:')
+        print('Source: {}, Destination: {}, Protocol: {}'.format(source_mac, dest_mac, eth_type))
+
+
 def get_mac_address(address):
     """
     change MAC address into the format AA:BB:CC:DD:EE:FF
     :param address: the MAC address to reformat
     :return: MAC address in the correct format
     """
-    bytes_str = map('{:02x}'.format, address)
+    bytes_str = map('{:02x}'.format, address)  # string format as 2-digit hexadecimal num
     mac_addr = ':'.join(bytes_str).upper()
     return mac_addr
 
@@ -22,3 +37,6 @@ def unpack_ethernet_frame(data):
     """
     dest_mac, source_mac, type = struct.unpack('! 6s 6s H', data[:14])
     return get_mac_address(dest_mac), get_mac_address(source_mac), socket.htons(type), data[14:]
+
+
+main()
