@@ -6,11 +6,16 @@ import textwrap
 def main():
     """
     Infinite loop main method which listens for packets from which data is extracted & outputted
-    :return:
+    MAKE SURE IDE IS RUNNING WITH ADMIN PRIVILEGES IF TESTING.
     """
 
+    host = socket.gethostbyname(socket.gethostname())   # Raw socket
     # Create socket to allow connections with other computers
-    conn = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
+    conn = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_IP)
+    conn.bind((host, 0))  # Bind raw socket to public interface
+    conn.setsockopt(socket.IPPROTO_IP, socket.IP_HDRINCL, 1) # Include IP headers
+    conn.ioctl(socket.SIO_RCVALL, socket.RCVALL_ON) # Receive all packets
+
     while True:
         raw_data, address = conn.recvfrom(65535)
         dest_mac, source_mac, eth_type, data = unpack_ethernet_frame(raw_data)
