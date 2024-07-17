@@ -25,7 +25,7 @@ def main():
 
 def get_mac_address(address):
     """
-    change MAC address into the format AA:BB:CC:DD:EE:FF
+    Change MAC address into the format AA:BB:CC:DD:EE:FF
     :param address: the MAC address to reformat
     :return: MAC address in the correct format
     """
@@ -42,6 +42,32 @@ def unpack_ethernet_frame(data):
     """
     dest_mac, source_mac, type = struct.unpack('! 6s 6s H', data[:14])
     return get_mac_address(dest_mac), get_mac_address(source_mac), socket.htons(type), data[14:]
+
+
+def unpack_ipv4_packet(data):
+    """
+    Unpack IPv4 packet data
+    :param data: Data from packet
+    :return: version, header length, TTL, protocol, formatted src & dest IPs, & rest of data (payload)
+    """
+    version_header_length = data[0]
+    version = version_header_length >> 4   # bitwise shift to push out header length so only version is left in data[0]
+    header_length = (version_header_length & 15) * 4
+    ttl, protocol, src ,target = struct.unpack('! 8x B B 2x 4s 4s', data [:20])
+    return version, header_length, ttl, protocol, formatted_ipv4(src), formatted_ipv4(target), data[header_length:]
+
+
+def formatted_ipv4(address):
+    """
+    Rewrite IPv4 address in correct format a.b.c.d
+    :param address: IPv4 address to format
+    :return: Correctly formatted IPv4 address
+    """
+    return '.'.join(map(str, address))
+
+
+
+
 
 
 main()
