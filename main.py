@@ -2,6 +2,16 @@ import struct  # Handles binary data in files, will need to interpret all data i
 import socket  # access to BSD socket interface (an API for internet sockets)
 import textwrap
 
+tab1 = '\t - '
+tab2 = '\t\t - '
+tab3 = '\t\t\t - '
+tab4 = '\t\t\t\t - '
+
+data_tab1 = '\t '
+data_tab2 = '\t\t '
+data_tab3 = '\t\t\t '
+data_tab4 = '\t\t\t\t '
+
 
 def main():
     """
