@@ -30,45 +30,50 @@ def main():
         raw_data, address = conn.recvfrom(65535)
         dest_mac, source_mac, eth_protocol, data = unpack_ethernet_frame(raw_data)
         print('\nEthernet frame:')
-        print('Source: {}, Destination: {}, Protocol: {}'.format(source_mac, dest_mac, eth_protocol))
+        print(tab1 + 'Source: {}, Destination: {}, Protocol: {}'.format(source_mac, dest_mac, eth_protocol))
 
         # IPv4 is protocol 8
         if eth_protocol == 8:
             (version, header_length, ttl, proto, src, target, data) = unpack_ipv4_packet(data)
-            print('IPv4 Packet:')
-            print('\nVersion: {}, Header Length: {}, TTL: {}'.format(version, header_length, ttl))
-            print('\nProtocol: {}, Source: {}, Target: {}'.format(proto, src, target))
+            print(tab1 + 'IPv4 Packet:')
+            print(tab2 + 'Version: {}, Header Length: {}, TTL: {}'.format(version, header_length, ttl))
+            print(tab2 + 'Protocol: {}, Source: {}, Target: {}'.format(proto, src, target))
 
             # ICMP
             if proto == 1:
                 icmp_type, code, checksum, data = icmp_packet(data)
+                print(tab1 + 'ICMP Packet: ')
+                print(tab2 + 'Type: {}, Code: {}, Checksum: {}, '.format(icmp_type, code, checksum))
+                print(tab2 + 'Data: ')
+                print(format_multi_line(data_tab3, data))
 
             # TCP
             elif proto == 6:
                 (src_port, dest_port, sequence, acknowledgement, flag_urg, flag_ack, flag_psh, flag_rst, flag_syn,
                  flag_fin, data) = tcp_segment(data)
-                print('TCP Segment: ')
-                print('\nSource port: {}, Destination port: {}'.format(src_port, dest_port))
-                print('\nSequence: {}, Acknowledgement: {}'.format(sequence, acknowledgement))
-                print('\nFlags: ')
-                print('\n\nURG: {}, ACK: {}, PSH: {}, RST: {}, SYN: {}, FIN: {}'.format(flag_urg, flag_ack, flag_psh,
-                                                                                        flag_rst, flag_syn, flag_fin))
-                print('\nData: ')
-                print(format_multi_line('\n\n\n', data))
+                print(tab1 + 'TCP Segment: ')
+                print(tab2 + 'Source port: {}, Destination port: {}'.format(src_port, dest_port))
+                print(tab2 + 'Sequence: {}, Acknowledgement: {}'.format(sequence, acknowledgement))
+                print(tab2 + 'Flags: ')
+                print(tab3 + 'URG: {}, ACK: {}, PSH: {}, RST: {}, SYN: {}, FIN: {}'.format(flag_urg, flag_ack, flag_psh,
+                                                                                           flag_rst, flag_syn,
+                                                                                           flag_fin))
+                print(tab2 + 'Data: ')
+                print(format_multi_line(data_tab3, data))
 
             # UDP
             elif proto == 17:
                 src_port, dest_port, size, data = udp_segment(data)
-                print('UDP Segment: ')
-                print('\nSource port: {}, Destination port: {}, Length: {}'.format(src_port, dest_port, size))
+                print(tab1 + 'UDP Segment: ')
+                print(tab2 + 'Source port: {}, Destination port: {}, Length: {}'.format(src_port, dest_port, size))
 
             else:
-                print('Data: ')
-                print(format_multi_line('\n', data))
+                print(tab1 + 'Data: ')
+                print(format_multi_line(data_tab2, data))
 
         else:
             print('Data: ')
-            print(format_multi_line('\n', data))
+            print(format_multi_line(data_tab1, data))
 
 
 def get_mac_address(address):
