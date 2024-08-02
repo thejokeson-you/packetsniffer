@@ -1,6 +1,6 @@
 # Packet Sniffer in Python
 A program written in Python which logs and analyses data packets across your device's network.
-< br / >
+<br>
 Inspired by Wireshark & other similar network packet analyzer programs.
 
 # How to run
