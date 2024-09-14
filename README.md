@@ -6,4 +6,4 @@ Inspired by Wireshark & other similar network packet analyzer programs.
 # How to run
 - Open a terminal/command prompt instance with *administrative permissions*
 - Navigate to the directory with this program
-- Run `python sockettest.py`
+- Run `python packetsniffer.py`
